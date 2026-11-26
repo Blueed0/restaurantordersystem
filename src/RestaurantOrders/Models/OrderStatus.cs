@@ -1,23 +1,23 @@
-// Bu dosya, bir siparişin geçebileceği durumları tanımlayan OrderStatus enum türünü içerir.
+// Bu dosya, bir siparişin geçebileceği durumları tanımlayan enum türünü içerir.
 
 namespace RestaurantOrders.Models
 {
-    // Siparişin yaşam döngüsündeki durumlar
+    // Siparişin yaşam döngüsündeki izinli durumlar
     public enum OrderStatus
     {
-        // Sipariş yeni açıldı ve henüz mutfağa gönderilmedi
+        // Sipariş yeni açıldı; ürün ekleme ve iptal buradayken yapılabilir
         Created,
 
-        // Mutfak siparişi hazırlıyor
+        // Mutfak siparişi hazırlıyor; ürün eklenemez
         Preparing,
 
         // Sipariş müşteriye servis edildi
         Served,
 
-        // Hesap ödendi
+        // Hesap ödendi; indirim artık uygulanamaz
         Paid,
 
-        // Sipariş iptal edildi
+        // Sipariş iptal edildi; indirim uygulanamaz
         Cancelled
     }
 }

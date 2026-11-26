@@ -4,7 +4,7 @@ using System;
 
 namespace RestaurantOrders.Models
 {
-    // Restoranda sipariş açabilen müşteri
+    // Restoranda sipariş açabilen müşteri kaydı
     public class Customer
     {
         // Müşterinin benzersiz kimliği (örnek: C01)
@@ -16,29 +16,34 @@ namespace RestaurantOrders.Models
         // Müşterinin telefon numarası
         public string Phone { get; private set; }
 
-        // Yeni müşteri oluşturur; kimlik ve ad boş olamaz
+        // Yeni müşteri oluşturur; kimlik, ad ve telefon boş olamaz
         public Customer(string id, string fullName, string phone)
         {
-            // Kimlik boşsa müşteri oluşturulamaz
+            // Kimlik boşsa müşteri nesnesi kurulamaz
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException("Müşteri kimliği boş olamaz.");
             }
 
-            // Ad soyad boşsa müşteri oluşturulamaz
+            // Ad soyad boşsa müşteri nesnesi kurulamaz
             if (string.IsNullOrWhiteSpace(fullName))
             {
                 throw new ArgumentException("Müşteri adı boş olamaz.");
             }
 
-            // Telefon boşsa müşteri oluşturulamaz
+            // Telefon boşsa müşteri nesnesi kurulamaz
             if (string.IsNullOrWhiteSpace(phone))
             {
                 throw new ArgumentException("Telefon boş olamaz.");
             }
 
+            // Baştaki ve sondaki boşluklar kimlikte tutulmaz
             Id = id.Trim();
+
+            // Ad soyad da temizlenerek saklanır
             FullName = fullName.Trim();
+
+            // Telefon metni de temizlenerek saklanır
             Phone = phone.Trim();
         }
     }

@@ -38,8 +38,13 @@ namespace RestaurantOrders.Models
                 throw new ArgumentException("Fiyat 0'dan büyük olmalıdır.");
             }
 
+            // Kimlikteki gereksiz boşluklar temizlenir
             Id = id.Trim();
+
+            // Ad temizlenerek saklanır
             Name = name.Trim();
+
+            // Geçerli fiyat saklanır
             Price = price;
         }
 
@@ -52,12 +57,14 @@ namespace RestaurantOrders.Models
         // Vergili birim fiyatı hesaplar; vergi oranı alt sınıftan gelir
         public decimal GetPriceWithTax()
         {
+            // Fiyat * (1 + vergi) formülü polimorfik GetTaxRate ile çalışır
             return Price * (1 + GetTaxRate());
         }
 
         // Kimlik, kategori, ad ve vergisiz fiyatı yazar
         public virtual string GetDisplayText()
         {
+            // Alt sınıflar bu metni genişletebilir
             return Id + " | " + GetCategory() + " | " + Name + " | " + FormatMoney(Price);
         }
 
@@ -70,12 +77,14 @@ namespace RestaurantOrders.Models
                 throw new ArgumentException("Fiyat 0'dan büyük olmalıdır.");
             }
 
+            // Geçerli yeni fiyat yazılır
             Price = newPrice;
         }
 
         // Parayı iki basamaklı ve noktalı yazar
         private string FormatMoney(decimal amount)
         {
+            // Liste metninde para birimi TL olarak gösterilir
             return amount.ToString("0.00", CultureInfo.InvariantCulture) + " TL";
         }
     }

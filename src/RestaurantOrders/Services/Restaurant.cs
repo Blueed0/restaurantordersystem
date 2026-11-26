@@ -24,9 +24,16 @@ namespace RestaurantOrders.Services
         // Boş listelerle yeni bir restoran oluşturur
         public Restaurant()
         {
+            // Menü listesi boş başlar
             menu = new List<MenuItem>();
+
+            // Müşteri listesi boş başlar
             customers = new List<Customer>();
+
+            // Sipariş listesi boş başlar
             orders = new List<Order>();
+
+            // İlk sipariş numarası O001 olacaktır
             nextOrderNumber = 1;
         }
 
@@ -47,14 +54,20 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Ürün menü listesine eklenir
             menu.Add(item);
+
+            // Başarı mesajı yazılır
             message = "Ürün menüye eklendi.";
+
+            // İşlem başarılıdır
             return true;
         }
 
         // Menüdeki bir ürünün fiyatını günceller
         public bool UpdateMenuItemPrice(string id, decimal newPrice, out string message)
         {
+            // Kimliğe göre ürün aranır
             MenuItem? item = FindMenuItem(id);
 
             // Olmayan ürünün fiyatı değişmez
@@ -71,14 +84,20 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Yeni fiyat ürüne yazılır
             item.ChangePrice(newPrice);
+
+            // Başarı mesajı yazılır
             message = "Ürün fiyatı güncellendi.";
+
+            // İşlem başarılıdır
             return true;
         }
 
         // Menüden ürün siler
         public bool RemoveMenuItem(string id, out string message)
         {
+            // Kimliğe göre ürün aranır
             MenuItem? item = FindMenuItem(id);
 
             // Olmayan ürün silinmez, liste aynı kalır
@@ -88,8 +107,13 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Ürün menü listesinden çıkarılır
             menu.Remove(item);
+
+            // Başarı mesajı yazılır
             message = "Ürün menüden silindi.";
+
+            // İşlem başarılıdır
             return true;
         }
 
@@ -110,15 +134,23 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Müşteri listeye eklenir
             customers.Add(customer);
+
+            // Başarı mesajı yazılır
             message = "Müşteri eklendi.";
+
+            // İşlem başarılıdır
             return true;
         }
 
         // Kayıtlı bir müşteri için yeni sipariş açar
         public bool CreateOrder(string customerId, out Order? order, out string message)
         {
+            // Başarısız durumda dışarı null döner
             order = null;
+
+            // Kimliğe göre müşteri aranır
             Customer? customer = FindCustomer(customerId);
 
             // Bilinmeyen müşteri için sipariş açılmaz
@@ -128,18 +160,32 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Sipariş kimliği O001, O002 biçiminde üretilir
             string newId = "O" + nextOrderNumber.ToString("000");
+
+            // Yeni sipariş nesnesi Created durumunda açılır
             Order created = new Order(newId, customer);
+
+            // Sipariş listeye eklenir
             orders.Add(created);
+
+            // Bir sonraki sipariş için numara artırılır
             nextOrderNumber = nextOrderNumber + 1;
+
+            // Çağırana yeni sipariş verilir
             order = created;
+
+            // Başarı mesajı yazılır
             message = "Sipariş oluşturuldu.";
+
+            // İşlem başarılıdır
             return true;
         }
 
         // Var olan bir siparişe menüdeki üründen ekler
         public bool AddItemToOrder(string orderId, string itemId, int quantity, out string message)
         {
+            // Sipariş kimliğiyle kayıt aranır
             Order? order = FindOrder(orderId);
 
             // Olmayan siparişe ürün eklenmez
@@ -149,6 +195,7 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Menü kimliğiyle ürün aranır
             MenuItem? item = FindMenuItem(itemId);
 
             // Menüde olmayan ürün siparişe yazılmaz
@@ -158,12 +205,14 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Satır ekleme kuralı Order sınıfındadır
             return order.AddItem(item, quantity, out message);
         }
 
         // Siparişten bir ürünü çıkarır
         public bool RemoveItemFromOrder(string orderId, string itemId, out string message)
         {
+            // Sipariş kimliğiyle kayıt aranır
             Order? order = FindOrder(orderId);
 
             // Olmayan sipariş değiştirilmez
@@ -173,12 +222,14 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Satır silme kuralı Order sınıfındadır
             return order.RemoveItem(itemId, out message);
         }
 
         // Sipariş satırının miktarını günceller
         public bool UpdateOrderItemQuantity(string orderId, string itemId, int newQuantity, out string message)
         {
+            // Sipariş kimliğiyle kayıt aranır
             Order? order = FindOrder(orderId);
 
             // Olmayan siparişin miktarı değişmez
@@ -188,12 +239,14 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Miktar kuralı Order sınıfındadır
             return order.UpdateQuantity(itemId, newQuantity, out message);
         }
 
         // Siparişe indirim uygular
         public bool ApplyDiscountToOrder(string orderId, decimal percent, out string message)
         {
+            // Sipariş kimliğiyle kayıt aranır
             Order? order = FindOrder(orderId);
 
             // Olmayan siparişe indirim yazılmaz
@@ -203,12 +256,14 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // İndirim kuralı Order sınıfındadır
             return order.ApplyDiscount(percent, out message);
         }
 
         // Siparişin durumunu değiştirmeyi dener
         public bool ChangeOrderStatus(string orderId, OrderStatus newStatus, out string message)
         {
+            // Sipariş kimliğiyle kayıt aranır
             Order? order = FindOrder(orderId);
 
             // Olmayan siparişin durumu değişmez
@@ -218,6 +273,7 @@ namespace RestaurantOrders.Services
                 return false;
             }
 
+            // Durum geçiş kuralı Order sınıfındadır
             return order.ChangeStatus(newStatus, out message);
         }
 
@@ -240,6 +296,7 @@ namespace RestaurantOrders.Services
                 }
             }
 
+            // Bulunamazsa null döner
             return null;
         }
 
@@ -262,6 +319,7 @@ namespace RestaurantOrders.Services
                 }
             }
 
+            // Bulunamazsa null döner
             return null;
         }
 
@@ -284,6 +342,7 @@ namespace RestaurantOrders.Services
                 }
             }
 
+            // Bulunamazsa null döner
             return null;
         }
 

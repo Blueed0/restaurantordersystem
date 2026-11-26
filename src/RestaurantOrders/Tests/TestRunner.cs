@@ -49,6 +49,7 @@ namespace RestaurantOrders.Tests
             RunT11_AddItemWhilePreparing();
             RunT12_FullStatusFlow();
 
+            // Geçen ve toplam sayı özet satırında yazılır
             string summary = passedCount + " / " + totalCount + " test geçti";
 
             // Tümü geçtiyse özet yeşil, aksi halde kırmızı yazılır

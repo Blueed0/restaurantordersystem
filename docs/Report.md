@@ -116,7 +116,7 @@ The submitted files are listed below.
 - Program.cs is the numbered menu.
 - Models/IPrintable.cs, MenuItem.cs, Food.cs, Drink.cs, Customer.cs, OrderStatus.cs, OrderLine.cs, and Order.cs are the domain types.
 - Services/Restaurant.cs is the in-memory service.
-- Tests/TestRunner.cs runs the twelve tests and writes test-results.txt.
+- Tests/TestRunner.cs runs the built-in tests and writes test-results.txt.
 - README.md explains how to build, run, and test, and maps each object-oriented idea to a file.
 - docs/UML.md is the class diagram.
 - docs/TestCases.md is the test table filled from the real run.

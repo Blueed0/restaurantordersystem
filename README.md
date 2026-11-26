@@ -9,9 +9,15 @@
 
 ## Gereksinimler
 
-- .NET 8 SDK
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Terminal / PowerShell / Komut İstemi (veya Visual Studio / VS Code / Cursor)
 
-## Çalıştırma
+## Başka bilgisayarda çalıştırma
+
+1. Bilgisayara **.NET 8 SDK** kurun.
+2. Projeyi alın (`git clone` veya ZIP indirip açın).
+3. Terminalde proje klasörüne girin.
+4. Şu komutları çalıştırın:
 
 ```bash
 cd src/RestaurantOrders
@@ -19,7 +25,13 @@ dotnet build
 dotnet run
 ```
 
-Program açılışta örnek menüyü ve örnek müşterileri yükler. Başarılı işlemler yeşil, hatalı işlemler kırmızı yazılır. Hatalı sayı girişinde program kapanmaz; soru yeniden sorulur.
+Windows’ta `dotnet run` engellenirse proje kökünden:
+
+```powershell
+.\baslat.cmd
+```
+
+Program açılışta örnek menüyü ve örnek müşterileri yükler. Listeler numaralıdır; seçim için numarayı yazıp Enter’a basın. Başarılı işlemler yeşil, hatalı işlemler kırmızı yazılır.
 
 ## Menü
 

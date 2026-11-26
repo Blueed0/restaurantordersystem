@@ -22,11 +22,19 @@ namespace RestaurantOrders
         // Örnek veriyi yükler ve menüyü kullanıcı çıkana kadar gösterir
         public static void Main()
         {
+            // Türkçe karakterlerin bozulmaması için çıkış kodlaması UTF-8 yapılır
             Console.OutputEncoding = Encoding.UTF8;
-            Console.InputEncoding = Encoding.UTF8;
-            restaurant.LoadSampleData();
-            Console.WriteLine("Örnek menü ve müşteriler yüklendi.");
 
+            // Giriş kodlamasına dokunulmaz; Windows konsolunda seçim yazılabilsin diye varsayılan bırakılır
+
+            // Kurgusal menü ve müşteriler belleğe yüklenir
+            restaurant.LoadSampleData();
+
+            // Kullanıcıya başlangıç bilgisi yazılır
+            Console.WriteLine("Örnek menü ve müşteriler yüklendi.");
+            Console.WriteLine("Tüm seçimler numarayla yapılır. Listeden numarayı yazıp Enter'a basın.");
+
+            // Menü döngüsü açık başlar
             bool running = true;
 
             // Kullanıcı 0 seçene kadar menü tekrar eder
@@ -38,7 +46,10 @@ namespace RestaurantOrders
                     break;
                 }
 
+                // Ana menü seçenekleri yazılır
                 ShowMainMenu();
+
+                // Kullanıcıdan ana menü numarası alınır
                 int choice = ReadInt("Seçiminiz: ");
 
                 // Seçim okunamadan girdi kapandıysa çıkılır
@@ -127,7 +138,7 @@ namespace RestaurantOrders
             Console.WriteLine("0. Çıkış");
         }
 
-        // Menüdeki ürünleri polimorfik metinle listeler
+        // Menüdeki ürünleri numaralı ve polimorfik metinle listeler
         private static void ShowMenuItems()
         {
             IReadOnlyList<MenuItem> menu = restaurant.GetMenu();
@@ -140,12 +151,14 @@ namespace RestaurantOrders
             }
 
             Console.WriteLine("--- MENÜ ---");
+            Console.WriteLine("Seçmek için soldaki numarayı yazın.");
 
             // Aynı listede Food ve Drink kendi GetDisplayText metnini üretir
-            foreach (MenuItem item in menu)
+            for (int i = 0; i < menu.Count; i = i + 1)
             {
-                IPrintable printable = item;
-                Console.WriteLine(printable.GetDisplayText());
+                // Kullanıcı 1'den başlayan numarayla seçer
+                IPrintable printable = menu[i];
+                Console.WriteLine((i + 1) + ". " + printable.GetDisplayText());
             }
         }
 
@@ -154,7 +167,7 @@ namespace RestaurantOrders
         {
             Console.WriteLine("1. Food (Yemek)");
             Console.WriteLine("2. Drink (İçecek)");
-            int type = ReadInt("Ürün türü: ");
+            int type = ReadInt("Ürün türü numarası: ");
 
             // Yalnızca iki ürün türü vardır
             if (type != 1 && type != 2)
@@ -163,8 +176,26 @@ namespace RestaurantOrders
                 return;
             }
 
-            string id = ReadText("Ürün kimliği (örnek F04 veya D04): ");
+            // Kimlik otomatik üretilir; kullanıcı F01 yazmak zorunda kalmaz
+            string id;
+
+            // 1 yemek, 2 içecek kimliği üretir
+            if (type == 1)
+            {
+                id = CreateNextId("F");
+            }
+            else
+            {
+                id = CreateNextId("D");
+            }
+
+            // Kullanıcıya verilen kimlik gösterilir
+            Console.WriteLine("Otomatik kimlik: " + id);
+
+            // Ürün adı kullanıcıdan alınır
             string name = ReadText("Ürün adı: ");
+
+            // Fiyat kullanıcıdan alınır
             decimal price = ReadDecimal("Fiyat: ");
 
             // Sıfır ve negatif fiyat daha nesne kurulmadan reddedilir
@@ -181,11 +212,13 @@ namespace RestaurantOrders
                 // Türe göre Food veya Drink nesnesi kurulur
                 if (type == 1)
                 {
+                    // Vejetaryen sorusu da numarayla sorulur
                     bool isVegetarian = ReadYesNo("Vejetaryen mi?");
                     item = new Food(id, name, price, isVegetarian);
                 }
                 else
                 {
+                    // İçecek hacmi sorulur
                     int volume = ReadInt("Hacim (ml): ");
 
                     // Hacim pozitif değilse içecek oluşturulmaz
@@ -212,21 +245,34 @@ namespace RestaurantOrders
         // Seçilen ürünün fiyatını günceller
         private static void UpdatePriceFromUser()
         {
-            ShowMenuItems();
-            string id = ReadText("Güncellenecek ürün kimliği: ");
+            MenuItem? item;
+
+            // Ürün numarayla seçilmezse işlem yapılmaz
+            if (TrySelectMenuItem("Güncellenecek ürün numarası: ", out item) == false || item == null)
+            {
+                return;
+            }
+
+            // Yeni fiyat okunur
             decimal price = ReadDecimal("Yeni fiyat: ");
             string message;
-            bool updated = restaurant.UpdateMenuItemPrice(id, price, out message);
+            bool updated = restaurant.UpdateMenuItemPrice(item.Id, price, out message);
             ShowOperationResult(updated, message);
         }
 
         // Seçilen ürünü menüden siler
         private static void RemoveMenuItemFromUser()
         {
-            ShowMenuItems();
-            string id = ReadText("Silinecek ürün kimliği: ");
+            MenuItem? item;
+
+            // Ürün numarayla seçilmezse silme yapılmaz
+            if (TrySelectMenuItem("Silinecek ürün numarası: ", out item) == false || item == null)
+            {
+                return;
+            }
+
             string message;
-            bool removed = restaurant.RemoveMenuItem(id, out message);
+            bool removed = restaurant.RemoveMenuItem(item.Id, out message);
             ShowOperationResult(removed, message);
         }
 
@@ -260,7 +306,7 @@ namespace RestaurantOrders
             }
         }
 
-        // Kayıtlı müşterileri yazar
+        // Kayıtlı müşterileri numaralı listeler
         private static void ShowCustomers()
         {
             IReadOnlyList<Customer> customers = restaurant.GetCustomers();
@@ -273,19 +319,27 @@ namespace RestaurantOrders
             }
 
             Console.WriteLine("--- MÜŞTERİLER ---");
+            Console.WriteLine("Seçmek için soldaki numarayı yazın.");
 
-            // Her müşterinin kimliği, adı ve telefonu yazılır
-            foreach (Customer customer in customers)
+            // Her müşteri 1'den başlayan numarayla yazılır
+            for (int i = 0; i < customers.Count; i = i + 1)
             {
-                Console.WriteLine(customer.Id + " | " + customer.FullName + " | " + customer.Phone);
+                Customer customer = customers[i];
+                Console.WriteLine((i + 1) + ". " + customer.Id + " | " + customer.FullName + " | " + customer.Phone);
             }
         }
 
         // Yeni müşteri bilgilerini okuyup listeye ekler
         private static void AddCustomerFromUser()
         {
-            string id = ReadText("Müşteri kimliği (örnek C04): ");
+            // Müşteri kimliği otomatik üretilir
+            string id = CreateNextId("C");
+            Console.WriteLine("Otomatik kimlik: " + id);
+
+            // Ad soyad kullanıcıdan alınır
             string fullName = ReadText("Ad soyad: ");
+
+            // Telefon kullanıcıdan alınır
             string phone = ReadText("Telefon: ");
 
             try
@@ -305,11 +359,17 @@ namespace RestaurantOrders
         // Seçilen müşteri için yeni sipariş açar
         private static void CreateOrderFromUser()
         {
-            ShowCustomers();
-            string customerId = ReadText("Müşteri kimliği: ");
+            Customer? customer;
+
+            // Müşteri numarayla seçilmezse sipariş açılmaz
+            if (TrySelectCustomer("Müşteri numarası: ", out customer) == false || customer == null)
+            {
+                return;
+            }
+
             Order? order;
             string message;
-            bool created = restaurant.CreateOrder(customerId, out order, out message);
+            bool created = restaurant.CreateOrder(customer.Id, out order, out message);
 
             // Başarılı oluşturmada sipariş numarası da gösterilir
             if (created && order != null)
@@ -325,20 +385,32 @@ namespace RestaurantOrders
         // Seçilen siparişe menüden ürün ekler
         private static void AddItemToOrderFromUser()
         {
-            ShowOrders();
-            ShowMenuItems();
-            string orderId = ReadText("Sipariş kimliği: ");
-            string itemId = ReadText("Ürün kimliği: ");
+            Order? order;
+
+            // Önce sipariş numarayla seçilir
+            if (TrySelectOrder("Sipariş numarası: ", out order) == false || order == null)
+            {
+                return;
+            }
+
+            MenuItem? item;
+
+            // Sonra menü ürünü numarayla seçilir
+            if (TrySelectMenuItem("Ürün numarası: ", out item) == false || item == null)
+            {
+                return;
+            }
+
+            // Miktar numerik olarak alınır
             int quantity = ReadInt("Miktar (1-20): ");
             string message;
-            bool added = restaurant.AddItemToOrder(orderId, itemId, quantity, out message);
+            bool added = restaurant.AddItemToOrder(order.Id, item.Id, quantity, out message);
             ShowOperationResult(added, message);
         }
 
         // Sipariş satırının miktarını değiştirir veya satırı siler
         private static void EditOrderLineFromUser()
         {
-            ShowOrders();
             Console.WriteLine("1. Miktarı değiştir");
             Console.WriteLine("2. Ürünü çıkar");
             int choice = ReadInt("Seçiminiz: ");
@@ -350,8 +422,22 @@ namespace RestaurantOrders
                 return;
             }
 
-            string orderId = ReadText("Sipariş kimliği: ");
-            string itemId = ReadText("Ürün kimliği: ");
+            Order? order;
+
+            // Sipariş numarayla seçilir
+            if (TrySelectOrder("Sipariş numarası: ", out order) == false || order == null)
+            {
+                return;
+            }
+
+            OrderLine? line;
+
+            // Sipariş satırı numarayla seçilir
+            if (TrySelectOrderLine(order, "Sipariş satırı numarası: ", out line) == false || line == null)
+            {
+                return;
+            }
+
             string message;
             bool ok;
 
@@ -359,11 +445,11 @@ namespace RestaurantOrders
             if (choice == 1)
             {
                 int quantity = ReadInt("Yeni miktar (1-20): ");
-                ok = restaurant.UpdateOrderItemQuantity(orderId, itemId, quantity, out message);
+                ok = restaurant.UpdateOrderItemQuantity(order.Id, line.Item.Id, quantity, out message);
             }
             else
             {
-                ok = restaurant.RemoveItemFromOrder(orderId, itemId, out message);
+                ok = restaurant.RemoveItemFromOrder(order.Id, line.Item.Id, out message);
             }
 
             ShowOperationResult(ok, message);
@@ -372,24 +458,36 @@ namespace RestaurantOrders
         // Seçilen siparişe indirim oranı uygular
         private static void ApplyDiscountFromUser()
         {
-            ShowOrders();
-            string orderId = ReadText("Sipariş kimliği: ");
+            Order? order;
+
+            // Sipariş numarayla seçilir
+            if (TrySelectOrder("Sipariş numarası: ", out order) == false || order == null)
+            {
+                return;
+            }
+
             decimal percent = ReadDecimal("İndirim oranı (0-50): ");
             string message;
-            bool applied = restaurant.ApplyDiscountToOrder(orderId, percent, out message);
+            bool applied = restaurant.ApplyDiscountToOrder(order.Id, percent, out message);
             ShowOperationResult(applied, message);
         }
 
         // Seçilen siparişin durumunu güncellemeyi dener
         private static void ChangeStatusFromUser()
         {
-            ShowOrders();
-            string orderId = ReadText("Sipariş kimliği: ");
+            Order? order;
+
+            // Sipariş numarayla seçilir
+            if (TrySelectOrder("Sipariş numarası: ", out order) == false || order == null)
+            {
+                return;
+            }
+
             Console.WriteLine("1. Preparing");
             Console.WriteLine("2. Served");
             Console.WriteLine("3. Paid");
             Console.WriteLine("4. Cancelled");
-            int choice = ReadInt("Yeni durum: ");
+            int choice = ReadInt("Yeni durum numarası: ");
             OrderStatus newStatus;
 
             // 1 hazırlık durumunu seçer
@@ -420,28 +518,26 @@ namespace RestaurantOrders
             }
 
             string message;
-            bool changed = restaurant.ChangeOrderStatus(orderId, newStatus, out message);
+            bool changed = restaurant.ChangeOrderStatus(order.Id, newStatus, out message);
             ShowOperationResult(changed, message);
         }
 
         // Seçilen siparişin fişini yazar
         private static void PrintReceiptFromUser()
         {
-            ShowOrders();
-            string orderId = ReadText("Sipariş kimliği: ");
-            Order? order = restaurant.FindOrder(orderId);
+            Order? order;
 
-            // Olmayan sipariş için fiş basılmaz
-            if (order == null)
+            // Sipariş numarayla seçilir
+            if (TrySelectOrder("Fişi yazdırılacak sipariş numarası: ", out order) == false || order == null)
             {
-                WriteError("Sipariş bulunamadı.");
                 return;
             }
 
+            // Fiş metni konsola yazılır
             Console.WriteLine(order.GetReceipt());
         }
 
-        // Tüm siparişleri kısa özetle listeler
+        // Tüm siparişleri numaralı kısa özetle listeler
         private static void ShowOrders()
         {
             IReadOnlyList<Order> orders = restaurant.GetOrders();
@@ -454,13 +550,228 @@ namespace RestaurantOrders
             }
 
             Console.WriteLine("--- SİPARİŞLER ---");
+            Console.WriteLine("Seçmek için soldaki numarayı yazın.");
 
             // Her sipariş IPrintable üzerinden kendi özetini yazar
-            foreach (Order order in orders)
+            for (int i = 0; i < orders.Count; i = i + 1)
             {
-                IPrintable printable = order;
-                Console.WriteLine(printable.GetDisplayText());
+                IPrintable printable = orders[i];
+                Console.WriteLine((i + 1) + ". " + printable.GetDisplayText());
             }
+        }
+
+        // Menüden numarayla tek ürün seçer
+        private static bool TrySelectMenuItem(string prompt, out MenuItem? item)
+        {
+            item = null;
+            IReadOnlyList<MenuItem> menu = restaurant.GetMenu();
+
+            // Menü boşsa seçim yapılamaz
+            if (menu.Count == 0)
+            {
+                WriteError("Menü boş.");
+                return false;
+            }
+
+            // Numaralı menü gösterilir
+            ShowMenuItems();
+
+            // Kullanıcıdan seçim numarası alınır
+            int index = ReadInt(prompt);
+
+            // Girdi kapandıysa seçim başarısızdır
+            if (endOfInput)
+            {
+                return false;
+            }
+
+            // Numara 1 ile liste boyutu arasında olmalıdır
+            if (index < 1 || index > menu.Count)
+            {
+                WriteError("Geçersiz ürün numarası. 1 ile " + menu.Count + " arasında seçin.");
+                return false;
+            }
+
+            // Liste 0'dan başladığı için 1 çıkarılır
+            item = menu[index - 1];
+            return true;
+        }
+
+        // Müşteri listesinden numarayla tek müşteri seçer
+        private static bool TrySelectCustomer(string prompt, out Customer? customer)
+        {
+            customer = null;
+            IReadOnlyList<Customer> customers = restaurant.GetCustomers();
+
+            // Müşteri yoksa seçim yapılamaz
+            if (customers.Count == 0)
+            {
+                WriteError("Kayıtlı müşteri yok.");
+                return false;
+            }
+
+            // Numaralı müşteri listesi gösterilir
+            ShowCustomers();
+
+            // Kullanıcıdan seçim numarası alınır
+            int index = ReadInt(prompt);
+
+            // Girdi kapandıysa seçim başarısızdır
+            if (endOfInput)
+            {
+                return false;
+            }
+
+            // Numara geçerli aralıkta değilse reddedilir
+            if (index < 1 || index > customers.Count)
+            {
+                WriteError("Geçersiz müşteri numarası. 1 ile " + customers.Count + " arasında seçin.");
+                return false;
+            }
+
+            // Seçilen müşteri döndürülür
+            customer = customers[index - 1];
+            return true;
+        }
+
+        // Sipariş listesinden numarayla tek sipariş seçer
+        private static bool TrySelectOrder(string prompt, out Order? order)
+        {
+            order = null;
+            IReadOnlyList<Order> orders = restaurant.GetOrders();
+
+            // Sipariş yoksa seçim yapılamaz
+            if (orders.Count == 0)
+            {
+                WriteError("Henüz sipariş yok.");
+                return false;
+            }
+
+            // Numaralı sipariş listesi gösterilir
+            ShowOrders();
+
+            // Kullanıcıdan seçim numarası alınır
+            int index = ReadInt(prompt);
+
+            // Girdi kapandıysa seçim başarısızdır
+            if (endOfInput)
+            {
+                return false;
+            }
+
+            // Numara geçerli aralıkta değilse reddedilir
+            if (index < 1 || index > orders.Count)
+            {
+                WriteError("Geçersiz sipariş numarası. 1 ile " + orders.Count + " arasında seçin.");
+                return false;
+            }
+
+            // Seçilen sipariş döndürülür
+            order = orders[index - 1];
+            return true;
+        }
+
+        // Sipariş satırlarından numarayla tek satır seçer
+        private static bool TrySelectOrderLine(Order order, string prompt, out OrderLine? line)
+        {
+            line = null;
+            IReadOnlyList<OrderLine> lines = order.Lines;
+
+            // Satır yoksa seçim yapılamaz
+            if (lines.Count == 0)
+            {
+                WriteError("Bu siparişte ürün yok.");
+                return false;
+            }
+
+            Console.WriteLine("--- SİPARİŞ SATIRLARI ---");
+            Console.WriteLine("Seçmek için soldaki numarayı yazın.");
+
+            // Her satır numaralı yazılır
+            for (int i = 0; i < lines.Count; i = i + 1)
+            {
+                OrderLine current = lines[i];
+                Console.WriteLine((i + 1) + ". " + current.Item.Id + " | " + current.Item.Name + " | Adet: " + current.Quantity);
+            }
+
+            // Kullanıcıdan satır numarası alınır
+            int index = ReadInt(prompt);
+
+            // Girdi kapandıysa seçim başarısızdır
+            if (endOfInput)
+            {
+                return false;
+            }
+
+            // Numara geçerli aralıkta değilse reddedilir
+            if (index < 1 || index > lines.Count)
+            {
+                WriteError("Geçersiz satır numarası. 1 ile " + lines.Count + " arasında seçin.");
+                return false;
+            }
+
+            // Seçilen satır döndürülür
+            line = lines[index - 1];
+            return true;
+        }
+
+        // Verilen önek için bir sonraki kimliği üretir (F04, D04, C04)
+        private static string CreateNextId(string prefix)
+        {
+            // En büyük numara sıfırdan başlar
+            int maxNumber = 0;
+
+            // Menü ürünlerinde aynı önek aranır
+            IReadOnlyList<MenuItem> menu = restaurant.GetMenu();
+            for (int i = 0; i < menu.Count; i = i + 1)
+            {
+                maxNumber = MaxIdNumber(menu[i].Id, prefix, maxNumber);
+            }
+
+            // Müşterilerde aynı önek aranır
+            IReadOnlyList<Customer> customers = restaurant.GetCustomers();
+            for (int i = 0; i < customers.Count; i = i + 1)
+            {
+                maxNumber = MaxIdNumber(customers[i].Id, prefix, maxNumber);
+            }
+
+            // Bir sonraki numara iki haneli yazılır
+            int next = maxNumber + 1;
+            return prefix + next.ToString("00");
+        }
+
+        // Kimlik önekine ait numarayı okuyup en büyüğü günceller
+        private static int MaxIdNumber(string id, string prefix, int currentMax)
+        {
+            // Önek uyuşmuyorsa mevcut en büyük korunur
+            if (id.Length <= prefix.Length)
+            {
+                return currentMax;
+            }
+
+            // Büyük-küçük harf farkı öneği bozmaz
+            if (string.Equals(id.Substring(0, prefix.Length), prefix, StringComparison.OrdinalIgnoreCase) == false)
+            {
+                return currentMax;
+            }
+
+            // Önekten sonraki kısım sayıya çevrilir
+            string digits = id.Substring(prefix.Length);
+            int value;
+
+            // Sayı değilse mevcut en büyük korunur
+            if (int.TryParse(digits, out value) == false)
+            {
+                return currentMax;
+            }
+
+            // Daha büyük numara bulunduysa o kullanılır
+            if (value > currentMax)
+            {
+                return value;
+            }
+
+            return currentMax;
         }
 
         // Otomatik testleri çalıştırır
@@ -589,13 +900,15 @@ namespace RestaurantOrders
             }
         }
 
-        // Evet veya hayır cevabı okur
+        // Evet veya hayır cevabını numarayla okur
         private static bool ReadYesNo(string prompt)
         {
-            // E veya H girilene kadar soru tekrarlanır
+            // 1 veya 2 girilene kadar soru tekrarlanır
             while (true)
             {
-                string answer = ReadText(prompt + " (E/H): ");
+                Console.WriteLine("1. Evet");
+                Console.WriteLine("2. Hayır");
+                int answer = ReadInt(prompt + " ");
 
                 // Girdi kapandıysa hayır kabul edilir
                 if (endOfInput)
@@ -603,19 +916,19 @@ namespace RestaurantOrders
                     return false;
                 }
 
-                // Büyük veya küçük E olumlu cevaptır
-                if (answer == "E" || answer == "e")
+                // 1 olumlu cevaptır
+                if (answer == 1)
                 {
                     return true;
                 }
 
-                // Büyük veya küçük H olumsuz cevaptır
-                if (answer == "H" || answer == "h")
+                // 2 olumsuz cevaptır
+                if (answer == 2)
                 {
                     return false;
                 }
 
-                WriteError("Lütfen E veya H girin.");
+                WriteError("Lütfen 1 veya 2 girin.");
             }
         }
 
